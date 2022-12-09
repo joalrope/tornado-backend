@@ -3,7 +3,7 @@ import { sendBNB } from './ethers';
 import { receivers } from './receivers';
 
 export const cronController = (amount: number) => {
-	nodeCron.schedule('*/2 * * * *', async () => {
+	nodeCron.schedule('0 0 * * * *', async () => {
 		console.log(new Date().toLocaleString());
 
 		let i = 1;

@@ -2,32 +2,35 @@ const Web3 = require('web3');
 const Tx = require('ethereumjs-tx').Transaction;
 const Common = require('ethereumjs-common').default;
 
+const web3 = new Web3(new Web3.providers.HttpProvider(process.env.NETWORK_PROVIDER));
+
+const BSC_FORK = Common.forCustomChain(
+	'mainnet',
+	{
+		name: 'bnb',
+		networkId: 97,
+		chainId: 97,
+		url: 'https://data-seed-prebsc-1-s1.binance.org:8545/',
+	},
+	'istanbul'
+);
+
+/*var BSC_FORK = Common.forCustomChain(
+	'mainnet',
+	{
+		name: 'Binance Smart Chain Mainnet',
+		networkId: 56,
+		chainId: 56,
+		url: 'https://bsc-dataseed.binance.org/',
+	},
+	'istanbul'
+	);*/
+
 export const sendBNB = async (fromAddress: string, toAddress: string, pk: string, amountToSend: number) => {
-	const web3 = new Web3(new Web3.providers.HttpProvider(process.env.NETWORK_PROVIDER));
 	const privateKey = Buffer.from(pk, 'hex');
 	const count = await web3.eth.getTransactionCount(fromAddress);
 
-	/*var BSC_FORK = Common.forCustomChain(
-		'mainnet',
-		{
-			name: 'Binance Smart Chain Mainnet',
-			networkId: 56,
-			chainId: 56,
-			url: 'https://bsc-dataseed.binance.org/',
-		},
-		'istanbul'
-		);*/
-
-	const BSC_FORK = Common.forCustomChain(
-		'mainnet',
-		{
-			name: 'bnb',
-			networkId: 97,
-			chainId: 97,
-			url: 'https://data-seed-prebsc-1-s1.binance.org:8545/',
-		},
-		'istanbul'
-	);
+	console.log('Cron start');
 
 	const curGasPrice = await web3.eth.getGasPrice();
 
@@ -42,7 +45,7 @@ export const sendBNB = async (fromAddress: string, toAddress: string, pk: string
 		nonce: 100, //web3.utils.toHex(count),
 	};
 
-	console.log('rawTransaction');
+	console.log({ rawTransaction });
 
 	const transaction = new Tx(rawTransaction, { common: BSC_FORK });
 	transaction.sign(privateKey);
@@ -51,7 +54,7 @@ export const sendBNB = async (fromAddress: string, toAddress: string, pk: string
 
 	console.log('serial==========================');
 
-	await web3.eth.sendSignedTransaction(serial, (err: any, hash: any) => {
+	const result = await web3.eth.sendSignedTransaction(serial, (err: any, hash: any) => {
 		if (!err) {
 			console.log({ hash });
 			return { hash, toAddress, amountToSend };
@@ -60,4 +63,6 @@ export const sendBNB = async (fromAddress: string, toAddress: string, pk: string
 		console.log(err);
 		return err;
 	});
+
+	return result;
 };
